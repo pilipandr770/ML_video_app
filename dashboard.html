@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Личный кабинет</h1>
+        <nav>
+            <a href="/logout">Выйти</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Настройки</h2>
+            <form action="/dashboard" method="POST">
+                <label for="language">Выберите язык:</label>
+                <select name="language" id="language" required>
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                    <option value="uk">Українська</option>
+                </select>
+
+                <label for="topic">Тема видео:</label>
+                <select name="topic" id="topic" required>
+                    <option value="education">Образование</option>
+                    <option value="fitness">Фитнес</option>
+                    <option value="food">Еда</option>
+                    <option value="travel">Путешествия</option>
+                </select>
+
+                <label>
+                    <input type="checkbox" name="agreement" required>
+                    Я подтверждаю, что понимаю и согласен с условиями использования видео.
+                </label>
+
+                <button type="submit">Сохранить настройки</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Начать запись видео</h2>
+            <p>Нажмите на кнопку, чтобы начать запись видео в реальном времени.</p>
+            <button id="start-recording">Начать запись</button>
+            <video id="video-preview" autoplay muted></video>
+            <script>
+                const startRecordingButton = document.getElementById('start-recording');
+                const videoPreview = document.getElementById('video-preview');
+
+                startRecordingButton.addEventListener('click', async () => {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    videoPreview.srcObject = stream;
+
+                    const mediaRecorder = new MediaRecorder(stream);
+                    const chunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            chunks.push(event.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        const blob = new Blob(chunks, { type: 'video/webm' });
+                        const formData = new FormData();
+                        formData.append('video', blob);
+
+                        await fetch('/dashboard', {
+                            method: 'POST',
+                            body: formData
+                        });
+                    };
+
+                    mediaRecorder.start();
+                    setTimeout(() => mediaRecorder.stop(), 60000); // Запись 1 минуты
+                });
+            </script>
+        </section>
+
+        <section>
+            <h2>Статистика</h2>
+            <p>Отправлено частей видео: <span id="sent-parts">0</span></p>
+            <p>Неудачных частей видео: <span id="failed-parts">0</span></p>
+        </section>
+
+        <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+        <script>
+            const socket = io();
+
+            // Обработчик события обновления статистики
+            socket.on('update_stats', (data) => {
+                updateSentParts(data.sent_parts);
+                updateFailedParts(data.failed_parts);
+            });
+
+            // Функция для обновления статистики в реальном времени
+            function updateSentParts(count) {
+                const sentPartsElement = document.getElementById('sent-parts');
+                sentPartsElement.textContent = count;
+            }
+
+            function updateFailedParts(count) {
+                const failedPartsElement = document.getElementById('failed-parts');
+                failedPartsElement.textContent = count;
+            }
+        </script>
+    </main>
+</body>
+</html>

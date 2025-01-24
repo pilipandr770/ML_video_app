@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Добро пожаловать на нашу платформу!</h1>
+    </header>
+    <main>
+        <section>
+            <p>Здесь вы можете записывать уникальные видео, которые будут использованы для обучения моделей искусственного интеллекта. Ваши данные в безопасности, а контент автоматически удаляется после использования.</p>
+        </section>
+        <section>
+            <h2>Начните прямо сейчас</h2>
+            <a href="/login">Войти</a> или <a href="/register">Зарегистрироваться</a>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Платформа обучения ИИ. Все права защищены.</p>
+    </footer>
+</body>
+</html>
